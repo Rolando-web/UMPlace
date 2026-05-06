@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1023766623042",
+    "project_id": "umplace-23d57",
+    "storage_bucket": "umplace-23d57.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1023766623042:android:f638bb378d1a3211af0edb",
+        "android_client_info": {
+          "package_name": "com.example.umplace"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1023766623042-8ubo7d538s6k60o6f65p4i9cg0j5en6f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSPLmmAWjV7ag7i1vuKPLkG9qwPKHkdTg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1023766623042-8ubo7d538s6k60o6f65p4i9cg0j5en6f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
