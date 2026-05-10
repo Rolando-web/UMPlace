@@ -1,17 +1,91 @@
 import 'package:flutter/material.dart';
+import '../../../services/paymongo_service.dart';
+import '../../../services/auth_service.dart';
 import '../widgets/secure_payment_widgets.dart';
 
 class SecurePaymentScreen extends StatelessWidget {
   final String itemTitle;
   final String price;
   final String sellerName;
+  final String sellerId;
+  final String listingId;
 
   const SecurePaymentScreen({
     super.key,
     required this.itemTitle,
     required this.price,
     required this.sellerName,
+    required this.sellerId,
+    required this.listingId,
   });
+
+  Future<void> _handlePayment(BuildContext context, String method) async {
+    final numericPrice = double.tryParse(price.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // 1. Create Transaction in Firestore
+      final transactionId = await PaymongoService.createEscrowTransaction(
+        buyerId: AuthService().currentUserId!,
+        sellerId: sellerId,
+        listingId: listingId,
+        listingTitle: itemTitle,
+        amount: numericPrice,
+        paymentMethod: method.toLowerCase(),
+      );
+
+      // 2. Create Paymongo Source
+      final source = await PaymongoService.createSource(
+        numericPrice,
+        method == 'GCash' ? 'gcash' : 'paymaya',
+        'https://www.google.com', // Success redirect
+        'https://www.google.com', // Failure redirect
+      );
+
+      if (context.mounted) Navigator.pop(context); // Close loading
+
+      if (source != null) {
+        final checkoutUrl = source['attributes']['redirect']['checkout_url'];
+        
+        // Show Simulation Dialog
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => PaymentSimulationDialog(
+              method: method,
+              url: checkoutUrl,
+              transactionId: transactionId,
+              onSuccess: () => _showSuccessScreen(context),
+            ),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment failed to initialize.')));
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  void _showSuccessScreen(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => PaymentSuccessBottomSheet(price: price),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +160,13 @@ class SecurePaymentScreen extends StatelessWidget {
                       children: [
                         Text(itemTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                         const SizedBox(height: 4),
+                        Row(
+                          children: [
                             Text('Seller: $sellerName (5.0', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                             const Icon(Icons.star, color: Colors.amber, size: 12),
                             Text(')', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                          ],
+                        ),
                         const SizedBox(height: 16),
                         const Divider(height: 1),
                         const SizedBox(height: 16),
@@ -133,9 +211,21 @@ class SecurePaymentScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   
                   // Payment Methods
-                  PaymentMethodTile(title: 'GCash', subtitle: 'Pay via GCash e-wallet', color: Colors.blue, initial: 'G'),
+                  PaymentMethodTile(
+                    title: 'GCash', 
+                    subtitle: 'Pay via GCash e-wallet', 
+                    color: Colors.blue, 
+                    initial: 'G',
+                    onTap: () => _handlePayment(context, 'GCash'),
+                  ),
                   const SizedBox(height: 12),
-                  PaymentMethodTile(title: 'Maya (PayMaya)', subtitle: 'Pay via Maya e-wallet', color: Colors.green, initial: 'M'),
+                  PaymentMethodTile(
+                    title: 'Maya (PayMaya)', 
+                    subtitle: 'Pay via Maya e-wallet', 
+                    color: Colors.green, 
+                    initial: 'M',
+                    onTap: () => _handlePayment(context, 'Maya'),
+                  ),
                   
                   const SizedBox(height: 24),
                   
@@ -166,5 +256,4 @@ class SecurePaymentScreen extends StatelessWidget {
       ),
     );
   }
-
 }

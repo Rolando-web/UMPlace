@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/cloudinary_service.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../models/listing.dart';
+import '../../../models/user_model.dart';
+import '../../services/auth_service.dart';
 
 // --- Events ---
 abstract class CreateListingEvent extends Equatable {
@@ -109,6 +111,37 @@ class CreateListingBloc extends Bloc<CreateListingEvent, CreateListingState> {
       };
 
       if (event.existingListing == null) {
+        // Enforce Trust Score limits for new listings
+        final userData = await AuthService().getUserData();
+        if (userData == null) {
+          emit(const CreateListingFailure('Could not fetch user data'));
+          return;
+        }
+
+        final limit = userData.listingLimit;
+        if (limit == 0) {
+          emit(const CreateListingFailure('Your trust score is too low to post new listings. Contact support to resolve issues.'));
+          return;
+        }
+
+        // Check if payment methods are set up (Required for receiving escrow payouts)
+        if (userData.paymentMethods == null || userData.paymentMethods!.isEmpty) {
+          emit(const CreateListingFailure('Please set up your Payout Methods (GCash/Maya) in your Profile before listing an item. This ensures you can receive payments safely.'));
+          return;
+        }
+
+        final existingListingsCount = await FirebaseFirestore.instance
+            .collection('listings')
+            .where('sellerId', isEqualTo: user.uid)
+            .get()
+            .then((snapshot) => snapshot.docs.length);
+
+        if (existingListingsCount >= limit) {
+          emit(CreateListingFailure(
+              'Your current limit is $limit listings based on your trust score of ${userData.trustScore}. Verify your student ID or improve your score to list more.'));
+          return;
+        }
+
         // Create new
         final docRef = await collection.add(listingData).timeout(const Duration(seconds: 15));
         
