@@ -38,8 +38,9 @@ class AuthService {
       } else {
         // Mobile: Use Google Sign-In package (using the available instance/authenticate API)
         final googleUser = await _googleSignIn.authenticate();
+        if (googleUser == null) return null;
 
-        final googleAuth = googleUser.authentication;
+        final googleAuth = await googleUser.authentication;
         final OAuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
         );
@@ -85,8 +86,9 @@ class AuthService {
       } else {
         // Mobile: Use Google Sign-In package (using the available instance/authenticate API)
         final googleUser = await _googleSignIn.authenticate();
+        if (googleUser == null) return null;
 
-        final googleAuth = googleUser.authentication;
+        final googleAuth = await googleUser.authentication;
         final OAuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
         );

@@ -14,11 +14,12 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  if (kIsWeb) {
-    await GoogleSignIn.instance.initialize(
-      clientId: '1023766623042-8ubo7d538s6k60o6f65p4i9cg0j5en6f.apps.googleusercontent.com',
-    );
-  }
+  // Initialize Google Sign-In for both Web and Mobile
+  const String webClientId = '1023766623042-8ubo7d538s6k60o6f65p4i9cg0j5en6f.apps.googleusercontent.com';
+  await GoogleSignIn.instance.initialize(
+    clientId: webClientId,
+    serverClientId: webClientId,
+  );
   runApp(const UMPlaceApp());
 }
 
