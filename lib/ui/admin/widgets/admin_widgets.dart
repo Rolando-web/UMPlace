@@ -90,18 +90,31 @@ class AdminReportCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: severityColor, borderRadius: BorderRadius.circular(4)),
-                child: Text(severity, style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: severityColor, borderRadius: BorderRadius.circular(4)),
+                      child: Text(severity, style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4)),
+                        child: Text(
+                          category, 
+                          style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4)),
-                child: Text(category, style: TextStyle(color: Colors.grey.shade600, fontSize: 10)),
-              ),
-              const Spacer(),
               Text(time, style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
             ],
           ),
@@ -473,6 +486,9 @@ class AdminTransactionCard extends StatelessWidget {
     if (statusBadge == 'PENDING') {
       badgeColor = Colors.amber.shade400;
       badgeTextColor = Colors.black87;
+    } else if (statusBadge == 'PAID' || statusBadge == 'RELEASED') {
+      badgeColor = Colors.green.shade600;
+      badgeTextColor = Colors.white;
     } else {
       badgeColor = Colors.grey.shade300;
       badgeTextColor = Colors.white;

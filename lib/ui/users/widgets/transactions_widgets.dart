@@ -20,11 +20,11 @@ class TransactionCard extends StatelessWidget {
 
     switch (tx.status) {
       case 'paid':
-        statusColor = Colors.blue;
+        statusColor = Colors.green;
         statusIcon = Icons.hourglass_top;
         break;
       case 'released':
-        statusColor = Colors.green;
+        statusColor = Colors.blue;
         statusIcon = Icons.check_circle;
         break;
       case 'pending':

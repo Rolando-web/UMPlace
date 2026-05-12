@@ -11,6 +11,7 @@ class TransactionModel {
   final String status; // 'pending', 'paid', 'released', 'refunded'
   final String paymentMethod; // 'gcash', 'maya'
   final String? paymongoPaymentId;
+  final String category;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -25,6 +26,7 @@ class TransactionModel {
     required this.status,
     required this.paymentMethod,
     this.paymongoPaymentId,
+    required this.category,
     required this.createdAt,
     this.updatedAt,
   });
@@ -44,6 +46,7 @@ class TransactionModel {
       status: data['status'] ?? 'pending',
       paymentMethod: data['paymentMethod'] ?? '',
       paymongoPaymentId: data['paymongoPaymentId'],
+      category: data['category'] ?? 'Others',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
     );
@@ -60,6 +63,7 @@ class TransactionModel {
       'status': status,
       'paymentMethod': paymentMethod,
       'paymongoPaymentId': paymongoPaymentId,
+      'category': category,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : FieldValue.serverTimestamp(),
     };

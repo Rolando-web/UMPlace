@@ -11,15 +11,19 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // Initialize Google Sign-In for both Web and Mobile
-  const String webClientId = '1023766623042-8ubo7d538s6k60o6f65p4i9cg0j5en6f.apps.googleusercontent.com';
-  await GoogleSignIn.instance.initialize(
-    clientId: webClientId,
-    serverClientId: webClientId,
-  );
+  // Initialize Google Sign-In for Mobile only. Web uses Firebase Auth directly.
+  if (!kIsWeb) {
+    const String webClientId = '1023766623042-8ubo7d538s6k60o6f65p4i9cg0j5en6f.apps.googleusercontent.com';
+    await GoogleSignIn.instance.initialize(
+      clientId: webClientId,
+      serverClientId: webClientId,
+    );
+  }
+  
   runApp(const UMPlaceApp());
 }
 

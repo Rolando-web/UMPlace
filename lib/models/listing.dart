@@ -16,6 +16,7 @@ class Listing {
   final int views;
   final int likes;
   final int offers;
+  final String? rejectionReason;
 
   Listing({
     required this.id,
@@ -33,6 +34,7 @@ class Listing {
     this.views = 0,
     this.likes = 0,
     this.offers = 0,
+    this.rejectionReason,
   });
 
   factory Listing.fromFirestore(DocumentSnapshot doc) {
@@ -56,6 +58,7 @@ class Listing {
       views: data['views'] ?? 0,
       likes: data['likes'] ?? 0,
       offers: data['offers'] ?? 0,
+      rejectionReason: data['rejectionReason'],
     );
   }
 
@@ -90,6 +93,7 @@ class Listing {
       'views': views,
       'likes': likes,
       'offers': offers,
+      'rejectionReason': rejectionReason,
     };
   }
 }

@@ -19,13 +19,16 @@ class _ReportsTabState extends State<ReportsTab> {
         // Filter Chips
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-          child: Row(
-            children: [
-              _buildFilterChip('All'),
-              _buildFilterChip('Pending'),
-              _buildFilterChip('Under Review'),
-              _buildFilterChip('Resolved'),
-            ],
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip('All'),
+                _buildFilterChip('Pending'),
+                _buildFilterChip('Under Review'),
+                _buildFilterChip('Resolved'),
+              ],
+            ),
           ),
         ),
         

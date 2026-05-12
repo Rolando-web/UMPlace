@@ -9,6 +9,7 @@ class SecurePaymentScreen extends StatelessWidget {
   final String sellerName;
   final String sellerId;
   final String listingId;
+  final String category;
 
   const SecurePaymentScreen({
     super.key,
@@ -17,6 +18,7 @@ class SecurePaymentScreen extends StatelessWidget {
     required this.sellerName,
     required this.sellerId,
     required this.listingId,
+    required this.category,
   });
 
   Future<void> _handlePayment(BuildContext context, String method) async {
@@ -35,6 +37,7 @@ class SecurePaymentScreen extends StatelessWidget {
         sellerId: sellerId,
         listingId: listingId,
         listingTitle: itemTitle,
+        category: category,
         amount: numericPrice,
         paymentMethod: method.toLowerCase(),
       );

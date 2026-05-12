@@ -84,6 +84,7 @@ class PaymongoService {
     required String sellerId,
     required String listingId,
     required String listingTitle,
+    required String category,
     required double amount,
     required String paymentMethod,
   }) async {
@@ -96,6 +97,7 @@ class PaymongoService {
       sellerId: sellerId,
       listingId: listingId,
       listingTitle: listingTitle,
+      category: category,
       amount: amount,
       commission: commission,
       status: 'pending',

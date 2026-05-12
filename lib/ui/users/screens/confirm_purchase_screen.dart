@@ -8,6 +8,7 @@ class ConfirmPurchaseScreen extends StatelessWidget {
   final String sellerName;
   final String sellerId;
   final String listingId;
+  final String category;
 
   const ConfirmPurchaseScreen({
     super.key,
@@ -16,6 +17,7 @@ class ConfirmPurchaseScreen extends StatelessWidget {
     required this.sellerName,
     required this.sellerId,
     required this.listingId,
+    required this.category,
   });
 
   @override
@@ -213,6 +215,7 @@ class ConfirmPurchaseScreen extends StatelessWidget {
                                   sellerName: sellerName,
                                   sellerId: sellerId,
                                   listingId: listingId,
+                                  category: category,
                                 )));
                               },
                               icon: const Icon(Icons.attach_money, color: Colors.white, size: 18),

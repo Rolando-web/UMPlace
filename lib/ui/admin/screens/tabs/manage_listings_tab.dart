@@ -38,6 +38,48 @@ class _ManageListingsTabViewState extends State<_ManageListingsTabView> with Sin
     super.dispose();
   }
 
+  void _showRejectionDialog(BuildContext context, String listingId, ManageListingsBloc bloc) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reject Listing'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Please provide a reason for rejection:', style: TextStyle(fontSize: 14)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'e.g. Inappropriate images, price too high, etc.',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.all(12),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please provide a reason')));
+                return;
+              }
+              bloc.add(UpdateListingStatus(listingId, 'rejected', reason: controller.text.trim()));
+              Navigator.pop(context); // Close dialog
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            child: const Text('Reject'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showDetailModal(Listing listing) {
     showDialog(
       context: context,
@@ -155,6 +197,8 @@ class _ManageListingsTabViewState extends State<_ManageListingsTabView> with Sin
                           _infoRow('Email', listing.sellerEmail.isNotEmpty ? listing.sellerEmail : 'N/A'),
                           _infoRow('Posted', '${listing.createdAt.day}/${listing.createdAt.month}/${listing.createdAt.year}'),
                           _infoRow('Status', listing.status.toUpperCase()),
+                          if (listing.rejectionReason != null) 
+                            _infoRow('Reason', listing.rejectionReason!, isRed: true),
                           
                           const SizedBox(height: 16),
                           const Text('Description', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -209,8 +253,8 @@ class _ManageListingsTabViewState extends State<_ManageListingsTabView> with Sin
                               Expanded(
                                 child: ElevatedButton.icon(
                                   onPressed: isLoading ? null : () {
-                                    blocContext.read<ManageListingsBloc>().add(UpdateListingStatus(listing.id, 'rejected'));
-                                    Navigator.pop(dialogContext);
+                                    _showRejectionDialog(dialogContext, listing.id, blocContext.read<ManageListingsBloc>());
+                                    Navigator.pop(dialogContext); // Close the detail modal first
                                   },
                                   icon: const Icon(Icons.cancel, size: 18),
                                   label: const Text('Reject'),
@@ -253,7 +297,7 @@ class _ManageListingsTabViewState extends State<_ManageListingsTabView> with Sin
     );
   }
 
-  Widget _infoRow(String label, String value) {
+  Widget _infoRow(String label, String value, {bool isRed = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -261,9 +305,9 @@ class _ManageListingsTabViewState extends State<_ManageListingsTabView> with Sin
         children: [
           SizedBox(
             width: 100,
-            child: Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+            child: Text(label, style: TextStyle(color: isRed ? Colors.red : Colors.grey.shade600, fontSize: 13, fontWeight: isRed ? FontWeight.bold : FontWeight.normal)),
           ),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13))),
+          Expanded(child: Text(value, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: isRed ? Colors.red : Colors.black87))),
         ],
       ),
     );
@@ -348,17 +392,20 @@ class _ManageListingsTabViewState extends State<_ManageListingsTabView> with Sin
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(listing.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(listing.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
                                 const SizedBox(height: 4),
-                                Text('₱${listing.price.toStringAsFixed(2)} • ${listing.category}', style: TextStyle(color: Colors.grey.shade700, fontSize: 14)),
+                                Text('₱${listing.price.toStringAsFixed(2)} • ${listing.category}', style: TextStyle(color: Colors.grey.shade700, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
                                     const Icon(Icons.person, size: 14, color: Colors.grey),
                                     const SizedBox(width: 4),
-                                    Text(
-                                      'Seller: ${listing.sellerName.isNotEmpty ? listing.sellerName : 'Unknown'}',
-                                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Seller: ${listing.sellerName.isNotEmpty ? listing.sellerName : 'Unknown'}',
+                                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -366,35 +413,38 @@ class _ManageListingsTabViewState extends State<_ManageListingsTabView> with Sin
                             ),
                           ),
                           // Status + View
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: statusFilter == 'active'
-                                      ? Colors.green.shade50
-                                      : statusFilter == 'pending'
-                                          ? Colors.orange.shade50
-                                          : Colors.red.shade50,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  listing.status.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
+                          SizedBox(
+                            width: 90,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
                                     color: statusFilter == 'active'
-                                        ? Colors.green.shade700
+                                        ? Colors.green.shade50
                                         : statusFilter == 'pending'
-                                            ? Colors.orange.shade700
-                                            : Colors.red.shade700,
+                                            ? Colors.orange.shade50
+                                            : Colors.red.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    listing.status.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: statusFilter == 'active'
+                                          ? Colors.green.shade700
+                                          : statusFilter == 'pending'
+                                              ? Colors.orange.shade700
+                                              : Colors.red.shade700,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text('Tap to review →', style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
-                            ],
+                                const SizedBox(height: 8),
+                                Text('View Details →', style: TextStyle(color: Colors.grey.shade500, fontSize: 10)),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -419,7 +469,7 @@ class _ManageListingsTabViewState extends State<_ManageListingsTabView> with Sin
                             const SizedBox(width: 8),
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: () => context.read<ManageListingsBloc>().add(UpdateListingStatus(listing.id, 'rejected')),
+                                onPressed: () => _showRejectionDialog(context, listing.id, context.read<ManageListingsBloc>()),
                                 icon: const Icon(Icons.cancel, size: 18),
                                 label: const Text('Reject'),
                                 style: ElevatedButton.styleFrom(
@@ -460,6 +510,7 @@ class _ManageListingsTabViewState extends State<_ManageListingsTabView> with Sin
             color: Colors.white,
             child: TabBar(
               controller: _tabController,
+              isScrollable: true,
               labelColor: const Color(0xFFB11A23),
               unselectedLabelColor: Colors.grey.shade600,
               indicatorColor: const Color(0xFFB11A23),

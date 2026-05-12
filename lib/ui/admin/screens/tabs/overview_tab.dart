@@ -50,7 +50,7 @@ class OverviewTab extends StatelessWidget {
                       bgColor: Colors.white,
                     );
                     final card4 = AdminStatCard(
-                      icon: Icons.attach_money,
+                      icon: Icons.list_alt,
                       value: '$transactionsCount',
                       label: "Today's Transactions",
                       iconColor: Colors.green.shade600,

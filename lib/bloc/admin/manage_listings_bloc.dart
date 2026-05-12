@@ -13,11 +13,12 @@ abstract class ManageListingsEvent extends Equatable {
 class UpdateListingStatus extends ManageListingsEvent {
   final String id;
   final String newStatus;
+  final String? reason;
 
-  const UpdateListingStatus(this.id, this.newStatus);
+  const UpdateListingStatus(this.id, this.newStatus, {this.reason});
 
   @override
-  List<Object?> get props => [id, newStatus];
+  List<Object?> get props => [id, newStatus, reason];
 }
 
 class DeleteListing extends ManageListingsEvent {
@@ -67,7 +68,10 @@ class ManageListingsBloc extends Bloc<ManageListingsEvent, ManageListingsState> 
   Future<void> _onUpdateStatus(UpdateListingStatus event, Emitter<ManageListingsState> emit) async {
     emit(ManageListingsLoading());
     try {
-      await FirebaseFirestore.instance.collection('listings').doc(event.id).update({'status': event.newStatus}).timeout(const Duration(seconds: 15));
+      await FirebaseFirestore.instance.collection('listings').doc(event.id).update({
+        'status': event.newStatus,
+        if (event.reason != null) 'rejectionReason': event.reason,
+      }).timeout(const Duration(seconds: 15));
       emit(ManageListingsSuccess('Listing ${event.newStatus == 'active' ? 'approved' : 'rejected'} successfully!'));
     } catch (e) {
       emit(ManageListingsFailure(e.toString()));

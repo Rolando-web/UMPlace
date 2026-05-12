@@ -35,6 +35,79 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
     super.dispose();
   }
 
+  void _showHelpSupportDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.help_outline, color: Color(0xFFB11A23)),
+            const SizedBox(width: 12),
+            const Expanded(child: Text('Admin Help & Support')),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHelpSection(
+                  'Listing Management',
+                  'Verify that items follow campus guidelines. Reject listings with blurry photos, incorrect categories, or prohibited items. Always provide a clear rejection reason to help the student correct their post.',
+                ),
+                _buildHelpSection(
+                  'ID Verification',
+                  'Carefully check Student IDs against the submitted profile names. Ensure the ID is not expired and belongs to a currently enrolled student. Verified users have a higher trust score.',
+                ),
+                _buildHelpSection(
+                  'Escrow & Revenue',
+                  'UMPlace charges a 5% platform commission on all successful sales. Payments are held in escrow via PayMongo and only released to the seller after the buyer confirms receipt.',
+                ),
+                _buildHelpSection(
+                  'Dispute Resolution',
+                  'In case of reports or transaction issues, use the Reports and Transactions tabs to review the history. You can contact both parties via their registered school emails.',
+                ),
+                _buildHelpSection(
+                  'System Support',
+                  'For technical issues or database errors, contact the development team at support@umplace.edu.ph or visit the CCE 106 Laboratory.',
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHelpSection(String title, String content) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFB11A23), fontSize: 16)),
+          const SizedBox(height: 4),
+          Text(content, style: TextStyle(color: Colors.grey.shade700, fontSize: 13, height: 1.5)),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleLogout() async {
+    await AuthService().signOut();
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthGate()),
+        (route) => false,
+      );
+    }
+  }
+
   Widget _buildDesktopLayout(String userName) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
@@ -47,7 +120,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
             child: Column(
               children: [
                 const SizedBox(height: 32),
-                Image.asset('assets/images/logo.png', height: 80),
+                Image.asset('assets/images/LOGO.png', height: 80),
                 const SizedBox(height: 16),
                 const Text('Admin Dashboard', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                 Text(userName, style: const TextStyle(color: Colors.white70, fontSize: 14)),
@@ -94,7 +167,45 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
                         children: [
                           Text(_titles[_tabController.index], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                           const Spacer(),
-                          const Icon(Icons.keyboard_arrow_down, color: Color(0xFFB11A23), size: 28),
+                          PopupMenuButton<String>(
+                            onSelected: (value) {
+                              if (value == 'help') {
+                                _showHelpSupportDialog();
+                              } else if (value == 'logout') {
+                                _handleLogout();
+                              }
+                            },
+                            child: const Row(
+                              children: [
+                                Text('Help & Account', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFFB11A23))),
+                                SizedBox(width: 8),
+                                Icon(Icons.keyboard_arrow_down, color: Color(0xFFB11A23), size: 28),
+                              ],
+                            ),
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'help',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.help_outline, size: 20),
+                                    SizedBox(width: 12),
+                                    Text('Help & Support'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuDivider(),
+                              const PopupMenuItem(
+                                value: 'logout',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.logout, size: 20, color: Colors.red),
+                                    SizedBox(width: 12),
+                                    Text('Logout', style: TextStyle(color: Colors.red)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -170,7 +281,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Image.asset('assets/images/logo.png'),
+          child: Image.asset('assets/images/LOGO.png'),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,18 +294,23 @@ class _AdminMainScreenState extends State<AdminMainScreen> with SingleTickerProv
           PopupMenuButton<String>(
             icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
             onSelected: (value) async {
-              if (value == 'logout') {
-                await AuthService().signOut();
-                if (mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AuthGate()),
-                    (route) => false,
-                  );
-                }
+              if (value == 'help') {
+                _showHelpSupportDialog();
+              } else if (value == 'logout') {
+                _handleLogout();
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'help',
+                child: Row(
+                  children: [
+                    Icon(Icons.help_outline, color: Color(0xFFB11A23)),
+                    SizedBox(width: 8),
+                    Text('Help & Support'),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'logout',
                 child: Row(
