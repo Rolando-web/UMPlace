@@ -14,8 +14,6 @@ class CloudinaryService {
     
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     
-    // Generate signature
-    // Cloudinary requires signing: timestamp + api_secret
     final stringToSign = 'timestamp=$timestamp$_apiSecret';
     final bytes = utf8.encode(stringToSign);
     final signature = sha1.convert(bytes).toString();
